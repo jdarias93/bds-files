@@ -18,9 +18,38 @@ d[ , 1:2] # Subsetting columns
 d[, c("start","end")] # We can also use column names to acheive the same end
 d[1,c("start","end")] # Only first row of start and end columns
 d[, "start", drop=FALSE] # Disables subsetting as vector (retains dataframe format)
-d$cent <- d$start >= 25800000 & d$end <= 29700000 # Logical vector for determining if window within a centromeric region
+d$cent <- d$start >= 25800000 & d$end <= 29700000 
+# Logical vector for determining if window within a centromeric region
 table(d$cent) # See how many rows were within the centromeric region
 sum(d$cent) # Another way to see how many rows were within region
-d$diversity <- d$Pi / (10*1000)
+d$diversity <- d$Pi / (10*1000) # Rescaling data
 
+## Exploring Data Through Slicing and Dicing
+summary(d$total.SNPs)
+# SNPs are heavily skewed right: Q3 = 12 but Max = 93! Let's investigate
+d$total.SNPs >= 85 # Create logical vector
+d[d$total.SNPs >= 85, ] # Subset according to logical vector
+# Only rows that have a TRUE value (total.SNPs >= 85) will be kept.
+d[d$Pi > 16 & d$Percent.GC > 80, ] # A more elaborate subsetting
+d[d$Pi > 16 & d$Percent.GC > 80, c("start","end","depth","Pi")]
+# One more time but asking for specific columns
+d$Percent.GC[d$Pi > 16] 
+# Asking for a specific column using a logical vector fromn ANOTHER COLUMN!!!
+summary(d$depth[d$Percent.GC >= 80])
+# Subsetting to summarize average depth in the >= 80 window; it is low compared to:
+summary(d$depth[d$Percent.GC < 80])
+
+summary(d$Pi[d$cent])
+# Looking at Pi by windows falling in our above centromere window...
+summary(d$Pi[!d$scent])
+# ...and those that fall outside it.
+
+d$Pi > 3
+# which() takes a logical vector and returns the positions of all TRUE values!
+which(d$Pi>3)
+which(d$Pi>10)[1:4] # First four TRUE values
+d[which.min(d$total.Bases),] # Returns row which has the minimum element
+d[which.max(d$depth),] # Returns row with the maximum element
+
+# So the centromere appears to have higher nucleotide diversity than other regions
 # Don't forget to git push this once done
