@@ -49,6 +49,7 @@ d[1,c("start","end")]
 
 d[, "start", drop=FALSE]
 # Disables subsetting as vector (retains dataframe format)
+
 d$cent <- d$start >= 25800000 & d$end <= 29700000 
 ```
 
@@ -65,47 +66,102 @@ d_sim <- data.frame(y=y, x=x)
 ```
 
 
-# Logical vector for determining if window within a centromeric region
-table(d$cent) # See how many rows were within the centromeric region
-sum(d$cent) # Another way to see how many rows were within region
-d$diversity <- d$Pi / (10*1000) # Rescaling data
+## Logical vector for determining if window within a centromeric region
+```{r}
+table(d$cent) 
+# See how many rows were within the centromeric region
 
-## Exploring Data Through Slicing and Dicing
+sum(d$cent) 
+# Another way to see how many rows were within region
+
+d$diversity <- d$Pi / (10*1000) 
+# Rescaling data
+```
+
+# Exploring Data Through Slicing and Dicing
+```{r}
+
 summary(d$total.SNPs)
 # SNPs are heavily skewed right: Q3 = 12 but Max = 93! Let's investigate
-d$total.SNPs >= 85 # Create logical vector
-d[d$total.SNPs >= 85, ] # Subset according to logical vector
+
+d$total.SNPs >= 85 
+# Create logical vector
+
+d[d$total.SNPs >= 85, ] 
+# Subset according to logical vector
 # Only rows that have a TRUE value (total.SNPs >= 85) will be kept.
-d[d$Pi > 16 & d$Percent.GC > 80, ] # A more elaborate subsetting
+
+d[d$Pi > 16 & d$Percent.GC > 80, ] 
+# A more elaborate subsetting
+
 d[d$Pi > 16 & d$Percent.GC > 80, c("start","end","depth","Pi")]
 # One more time but asking for specific columns
+
 d$Percent.GC[d$Pi > 16] 
 # Asking for a specific column using a logical vector fromn ANOTHER COLUMN!!!
+
 summary(d$depth[d$Percent.GC >= 80])
 # Subsetting to summarize average depth in the >= 80 window; it is low compared to:
 summary(d$depth[d$Percent.GC < 80])
 
 summary(d$Pi[d$cent])
 # Looking at Pi by windows falling in our above centromere window...
+
 summary(d$Pi[!d$scent])
 # ...and those that fall outside it.
 
 d$Pi > 3
 # which() takes a logical vector and returns the positions of all TRUE values!
-which(d$Pi>3)
-which(d$Pi>10)[1:4] # First four TRUE values
-d[which.min(d$total.Bases),] # Returns row which has the minimum element
-d[which.max(d$depth),] # Returns row with the maximum element
-# So the centromere appears to have higher nucleotide diversity than other regions
 
+which(d$Pi>3)
+which(d$Pi>10)[1:4] 
+# First four TRUE values
+
+d[which.min(d$total.Bases),] 
+# Returns row which has the minimum element
+
+d[which.max(d$depth),] 
+# Returns row with the maximum element
+
+# So the centromere appears to have higher nucleotide diversity than other regions
 # Sometimes subsetting expressions in brackets is redundant so we can use subset()
+
 # subset() takes two arguments: dataframe and conditions to include a row:
 subset(d,Pi > 16 & Percent.GC > 80)
 # A third argument supplied to specify which columns to include:
 subset(d, Pi > 16 & Percent.GC > 80,
        c(start,end,Pi,Percent.GC,depth))
 # subset is special in that we don't have to "quote" column names
+```
+
+# Exploring Data Visually with ggplot2 I: Scatterplots and Densities
+* Every R user should be acquainted with base graphics but we're gonna focus on ggplot2
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+
+# Let's create a scatterplot of nucleotide diversity along chromosome
+# We want to add a column called position to our dataframe that is the midpoint between 
+# each window:
+d$position <- d$end + d$start / 2
+ggplot(d) + geom_point(aes(x=position, y=Pi)) 
+# ggplot only works with dataframes
+# geom_point is a layer we add in order to create a scatterplot
+# "geoms" are geometric objects with many aesthetic attributes
+# We specify aesthetic attribute mapping to columns using function aes:
+ggplot(d,aes(x=position, y=Pi)) + geom_point()
+# Lets exclude missing diversity estimates from the centromere:
+ggplot(d) + geom_point(aes(x=position, y=Pi, color=cent))
+```
+* Axis Labels, Plot Titles, and Scales
+- You can change axes and plot labels with xlab(), ylab(), and ggtitle(), respectively.
+- You can set limits for continuous axes using scale_x_continuous(limits=c(start,end))
+- You can changes axes to log 10 scales with scale_x/ylog10()
 
 
 
-# Don't forget to git push this once done
+
+
+
+
+
